@@ -133,3 +133,4 @@ dist
 cloudflared
 package-lock.json
 xray
+settings

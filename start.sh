@@ -108,11 +108,11 @@ function prepare_xray() {
 
 function reserve_port() {
     local port
-    local env_file="$base_dir/node/.env"
+    local settings="$base_dir/settings"
     local port_found=false
-    if [ -f "$env_file" ]; then
-        port=$(grep '^PORT=' "$env_file" | cut -d '=' -f 2)
-        if [ -n "$port" ] && check_port "$port"; then
+    if [ -f "$settings" ]; then
+        port=$(grep '^PORT=' "$settings" | cut -d '=' -f 2)
+        if [ -n "$port" ]; then
             port_found=true
             echo $port
             return
@@ -144,12 +144,17 @@ function generate_configs() {
     local vless_node="vless://${id}@zula.ir:443?security=tls&sni=${cloudflared_address}&alpn=h2,http/1.1&fp=chrome&type=ws&path=/&host=${cloudflared_address}&encryption=none#[pl]%20[vl-tl-ws]%20[at-ar-no]"
     local vless_xray="vless://${uuid}@zula.ir:443?security=tls&sni=${cloudflared_address}&alpn=h2,http/1.1&fp=chrome&type=ws&path=/ws?ed%3D2048&host=${cloudflared_address}&encryption=none#[pl]%20[vl-tl-ws]%20[at-ar]"
 
-    cat > $base_dir/node/.env << EOF
+    cat > $base_dir/settings << EOF
 PORT=$port
 UUID=$uuid
-ID=$id
+CLOUDFLARED_ADDRESS=$cloudflared_address
 VLESS_NODE=$vless_node
 VLESS_XRAY=$vless_xray
+EOF
+
+    cat > $base_dir/node/.env << EOF
+PORT=$port
+ID=$id
 EOF
 
     cat > $base_dir/../public_html/sub.txt << EOF
@@ -218,12 +223,12 @@ function set_cronjob() {
 
 function extract_vars() {
     local pattern="$1"
-    local env_file="$base_dir/node/.env"
+    local settings="$base_dir/settings"
 
-    if [ -f "$env_file" ]; then
-        grep "$pattern" "$env_file" | sed 's/^[^=]*=//'
+    if [ -f "$settings" ]; then
+        grep "$pattern" "$settings" | sed 's/^[^=]*=//'
     else
-        echo "Error: .env file not found in $base_dir/node/"
+        echo "Error: settings file not found in $base_dir"
         return 1
     fi
 }
