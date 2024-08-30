@@ -11,9 +11,13 @@ trap '' SIGTERM
 base_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function setup_services() {
+    echo "安装$1"
     local action="${1:-xray}"
+    echo "初始化..."
     init
+    echo "运行cf"
     run_cloudflared
+    echo "运行$action"
     run_app $action
 }
 
